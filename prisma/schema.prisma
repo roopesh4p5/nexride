@@ -48,37 +48,46 @@ model Driver {
   vehicleModel  String
   vehiclePlate  String   @unique
   isAvailable   Boolean  @default(false)
-  currentLat    Float?
-  currentLng    Float?
-  rating        Float    @default(5.0)
-
   ridesAsDriver Ride[]   @relation("DriverToRide")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Ride {
   id              String     @id @default(uuid())
-  status          RideStatus @default(REQUESTED)
-  
   riderId         String
   rider           User       @relation("RiderToRide", fields: [riderId], references: [id])
-  
   driverId        String?
   driver          Driver?    @relation("DriverToRide", fields: [driverId], references: [id])
   
+  // Location details
   pickupLocation  String
+  dropoffLocation String
   pickupLat       Float
   pickupLng       Float
-  
-  dropoffLocation String
   dropoffLat      Float
   dropoffLng      Float
   
+  // Ride details
+  status          RideStatus @default(REQUESTED)
   fare            Float?
   distance        Float?
-  duration        Float?
+  estimatedTime   Int?       // in minutes
   
-  startedAt       DateTime?
-  completedAt     DateTime?
+  // Timestamps
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
+  
+  payment         Payment?
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  rideId    String   @unique
+  ride      Ride     @relation(fields: [rideId], references: [id])
+  amount    Float
+  status    String   @default("PENDING")
+  method    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

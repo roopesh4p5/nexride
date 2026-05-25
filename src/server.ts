@@ -1,9 +1,7 @@
+import 'dotenv/config';
 import app from './app';
-import dotenv from 'dotenv';
 import http from 'http';
 import { initSocket } from './services/socketService';
-
-dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
