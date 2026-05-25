@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  RIDER
+  DRIVER
+  ADMIN
+}
+
+enum RideStatus {
+  REQUESTED
+  ACCEPTED
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  phoneNumber   String?
+  role          UserRole @default(RIDER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Rider specific relationships
+  ridesAsRider  Ride[]   @relation("RiderToRide")
+  
+  // Driver specific relationship
+  driverProfile Driver?
+}
+
+model Driver {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  vehicleModel  String
+  vehiclePlate  String   @unique
+  isAvailable   Boolean  @default(false)
+  currentLat    Float?
+  currentLng    Float?
+  rating        Float    @default(5.0)
+
+  ridesAsDriver Ride[]   @relation("DriverToRide")
+}
+
+model Ride {
+  id              String     @id @default(uuid())
+  status          RideStatus @default(REQUESTED)
+  
+  riderId         String
+  rider           User       @relation("RiderToRide", fields: [riderId], references: [id])
+  
+  driverId        String?
+  driver          Driver?    @relation("DriverToRide", fields: [driverId], references: [id])
+  
+  pickupLocation  String
+  pickupLat       Float
+  pickupLng       Float
+  
+  dropoffLocation String
+  dropoffLat      Float
+  dropoffLng      Float
+  
+  fare            Float?
+  distance        Float?
+  duration        Float?
+  
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
